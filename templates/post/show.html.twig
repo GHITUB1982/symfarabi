@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Show shosen Post</h1>
+    
+        <div class="card">
+        <img src="{{'/uploads/' ~ post.image }}" style="with:170%; height:170%; margin-bottom: 5%;">
+            <h4>Category: {{ post.category }}</h4>
+            <h5 class="card-header">Post Nr:{{ post.id }}</h5>
+                <div class="card-body">
+                    <h5 class="card-title">{{ post.title }}</h5>
+                    <p class="card-text"></p>
+                    <a href="{{ path('app_post') }}" class="btn btn-primary">Return</a>
+                </div>
+        </div>
+{% endblock %}
