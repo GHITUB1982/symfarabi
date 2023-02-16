@@ -5,12 +5,13 @@ namespace App\Controller;
 
 use App\Entity\Post;
 use App\Form\CreateType;
+use App\Services\FileUploader;
 use App\Repository\PostRepository;
+
+
 use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-
-
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,43 +19,27 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class PostController extends AbstractController
 {
-    /**
-     * @Route("/post", name="app_post")
-     * @param PostRepository $postRepository
-     * @return Response
-     */
+/**
+ * @Route("/post", name="app_post")
+ * @param PostRepository $postRepository
+ * @return Response
+ */
     public function index(PostRepository $postRepository): Response
     {
-        $posts = $postRepository->findAll();
-        return $this->render('post/index.html.twig', [
-            'posts' => $posts,
-        ]);
+            $posts = $postRepository->findAll();
+            return $this->render('post/index.html.twig', [
+                'posts' => $posts,
+            ]);
     }
 
-    /**
-     * @Route("/post/show/{id}", name="post_show")
-     * @param Post $post
-     * @return Response
-     */
-            public function show($id, PostRepository $postRepository){
+/**
+ * @Route("/post/create", name="post_create")
+ * @param Request $request
+ * @return Response
+ * @param FileUploader $uploader
+ */
 
-                $post = $postRepository->findPostByCategory($id);
-
-                dd($post);
-                    //Create the show view 
-
-                    return $this->render('post/show.html.twig', [
-                        'post' => $post
-                    ]);
-            }
-
-    /**
-     * @Route("/post/create", name="post_create")
-     * @param Request $request
-     * @return Response
-     */
-
-     public function create(Request $request)
+     public function create(Request $request, FileUploader $fileUPloader)
      {
             //Create a new post with title
             $post = new Post();
@@ -67,24 +52,22 @@ class PostController extends AbstractController
                     if($form->isSubmitted() && $form->isValid()) {
                     $em =  $this->getDoctrine()->getManager();
 
-                        //to add more function to my code
-                        /**
-                         * @var UploadedFile $file 
-                         * 
-                         */
+//to add more function to my code
+/**
+ * @var UploadedFile $file 
+ * 
+ */
                     $file = $form->get('attachement')->getData();
          if($file){
-            $filename = md5(uniqid()) .'.' . $file->guessClientExtension();
-            $file->move(
-                    $this->getParameter('uploads_dir'),
-                    $filename
-            );
-            $post->setImage($filename);
-        }
+                        
+                    $filename = $fileUPloader->uploadFile($file);
+                    
+                    $post->setImage($filename);
                     $em->persist($post);
                     $em->flush();
                     // $this->addFlash('success', 'Post Created Successfully');
-                    //Return a Response      
+                    //Return a Response 
+               }    
                     return $this->redirect($this->generateUrl('app_post'));
 }
 
@@ -94,27 +77,25 @@ class PostController extends AbstractController
         ]);
      }
 
-    //  /**
-    //   * @Route("/post/show/{id}", name="post_show")
-    //   * @return Response 
-    //   * @param Post $post
-    //   */
+/**
+ * @Route("/post/show/{id}", name="post_show")
+* @return Response 
+* @param Post $post
+*/
 
-    //  public function show(Post $post)
-    //  {
-    //     // $post = $postRepository->find($post);
-    //     //CREATE THE SHOW VIEW
-    //     return $this->render('post/show.html.twig', [
-    //             'post' => $post,
-    //     ]);
-    //  }
+     public function show(Post $post)
+     {
+        return $this->render('post/show.html.twig', [
+                'post' => $post,
+        ]);
+     }
 
 
-    /**
-     * @Route("/post/delete/{id}", name="post_delete")
-     * @param Post $post
-     * @return Response 
-     */
+/**
+ * @Route("/post/delete/{id}", name="post_delete")
+ * @param Post $post
+ * @return Response 
+ */
      
      public function remove(Post $post) {
      
